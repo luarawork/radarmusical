@@ -25,6 +25,9 @@ Na página você pode:
 
 ## Sumário
 
+> 💡 **Não quer mexer no terminal?** Uma IA pode instalar e rodar tudo por você:
+> [Jeito fácil: com o Claude Code ou o Cursor](#jeito-fácil-com-o-claude-code-ou-o-cursor).
+
 1. [Como funciona, em uma frase](#1-como-funciona-em-uma-frase)
 2. [O que você precisa](#2-o-que-você-precisa)
 3. [Passo 1: ligar o Last.fm ao seu app de música](#3-passo-1-ligar-o-lastfm-ao-seu-app-de-música)
@@ -65,7 +68,107 @@ gera uma página no seu computador.
 - **Python**, um programa gratuito que roda o radar. O passo 2 explica como instalar.
 - Uns **20 minutos** pra configurar na primeira vez.
 
-Você **não precisa** saber programar. Só vai copiar e colar alguns comandos.
+Você **não precisa** saber programar. Dá pra seguir de dois jeitos:
+
+- **Jeito fácil:** uma IA faz a instalação e roda pra você. Veja logo abaixo.
+- **Passo a passo manual:** você copia e cola alguns comandos. Siga a partir do [passo 1](#3-passo-1-ligar-o-lastfm-ao-seu-app-de-música).
+
+---
+
+## Jeito fácil: com o Claude Code ou o Cursor
+
+O **Claude Code** e o **Cursor** são programas com uma IA que conversa em português e consegue,
+**no seu computador**:
+- ler este projeto;
+- instalar o que falta;
+- criar a configuração;
+- rodar o radar;
+- resolver erros que aparecerem.
+
+Você só explica o que quer e aprova cada passo.
+
+Mesmo assim, você ainda precisa fazer duas coisas que só você pode fazer:
+- ligar o Last.fm ao seu app de música ([passo 1](#3-passo-1-ligar-o-lastfm-ao-seu-app-de-música));
+- pegar a sua chave do Last.fm ([passo 4](#6-passo-4-pegar-a-chave-do-lastfm)).
+
+Todo o resto a IA faz.
+
+### Opção A: Claude Code
+
+1. Baixe o app do Claude em https://claude.ai/download e entre com a sua conta.
+   O Claude Code precisa de um plano pago do Claude (Pro ou superior).
+2. No app, abra a aba **Code**.
+3. Escolha uma pasta pro projeto: pode ser uma pasta vazia, como `Documentos\Radar Musical`, ou a
+   pasta onde você já descompactou o ZIP.
+4. Cole um dos pedidos abaixo na conversa.
+
+> Quem já usa o terminal também pode instalar o Claude Code por lá. Veja as instruções em
+> https://claude.com/claude-code.
+
+### Opção B: Cursor
+
+1. Baixe em https://cursor.com e instale. Tem plano gratuito, com limite de uso.
+2. Abra o Cursor → **File → Open Folder** e escolha uma pasta pro projeto.
+3. Abra o chat da IA (`Ctrl + L` no Windows, `Cmd + L` no Mac) e deixe no modo **Agent**.
+4. Cole um dos pedidos abaixo na conversa.
+
+### Pedidos prontos pra copiar e colar
+
+**Instalar do zero, numa pasta vazia:**
+
+```
+Quero usar o Radar Musical (https://github.com/luarawork/radarmusical) nesta pasta.
+Baixe o projeto aqui e siga o README.md pra instalar: confira se o Python 3.9+ está
+instalado (se não estiver, me explique como instalar), instale as dependências do
+requirements.txt e crie o arquivo .env a partir do .env.exemplo. Me peça só o meu
+usuário do Last.fm e a minha API key. Depois rode o radar_musical.py e me avise quando
+a página estiver pronta.
+```
+
+**Já baixei o ZIP e abri a pasta do projeto:**
+
+```
+Leia o README.md deste projeto e faça a instalação pra mim: instale as dependências,
+crie o .env a partir do .env.exemplo (me peça o meu usuário do Last.fm e a API key)
+e rode o radar_musical.py. Me avise quando terminar e abra a página.
+```
+
+**Rodar de novo (toda semana, por exemplo):**
+
+```
+Rode o radar_musical.py de novo e abra a página quando terminar.
+```
+
+**Usar os dados que baixei do Spotify / YouTube Music:**
+
+```
+Coloquei meus dados exportados na pasta historico. Rode o radar de novo e me diga
+quantos artistas do histórico foram reconhecidos.
+```
+
+**Ter o radar como app no celular:**
+
+```
+Me ajude a publicar o radar no GitHub Pages seguindo o docs/celular.md, um passo de cada vez.
+```
+
+**Deu algum erro:**
+
+```
+Rodei o radar e apareceu este erro: [cole aqui a mensagem]. Me ajude a resolver.
+```
+
+### Cuidados
+
+- **Leia o que a IA pede pra aprovar.** Ela vai pedir permissão pra rodar comandos no seu computador.
+  Pra instalar e rodar o radar, os comandos esperados são parecidos com os deste guia:
+  `pip install`, `python radar_musical.py`, criar o `.env`.
+- **Sua chave do Last.fm** vai pela conversa até o serviço da IA, pra ela poder escrever no `.env`.
+  Se preferir não compartilhar, peça pra IA criar o `.env` vazio e cole a chave você mesmo, abrindo
+  o arquivo no Bloco de Notas.
+- **Não cole senhas** de nenhuma conta na conversa. O radar não precisa de senha de nada; só da
+  API key do Last.fm.
+- A primeira rodada demora de minutos a horas, conforme o tamanho do seu histórico. Deixe a IA rodando.
 
 ---
 
@@ -374,3 +477,10 @@ CHANGELOG.md       o que mudou em cada versão
 - **Uso pessoal e não comercial.** Os termos do Last.fm e do Deezer só permitem esse tipo de uso.
 - Dados de [Last.fm](https://www.last.fm) (powered by AudioScrobbler), [Deezer](https://www.deezer.com)
   e [Spotify](https://www.spotify.com). Este projeto não tem ligação com nenhum desses serviços.
+
+---
+
+## Licença
+
+[MIT](LICENSE): pode usar, copiar, modificar e distribuir à vontade, inclusive em outros projetos,
+desde que mantenha o aviso de licença. O software é oferecido "como está", sem garantias.
