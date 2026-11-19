@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Radar Musical</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#13100e">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icone-192.png">
+<link rel="apple-touch-icon" href="icone-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Radar">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ---------- cores (escuro é o padrão; claro "clean" por escolha ou pelo sistema) ---------- */
+  :root{
+    --bg:#13100e; --surface:#1c1815; --surface2:#26211d; --line:#322b26; --txt:#f4ede5; --mut:#a89b8e;
+    --acc:#ff7a45; --acc-txt:#1a0d06; --acc2:#c9a7ff; --ok:#6fd19f; --bad:#ef7676;
+    --shadow:0 1px 0 rgba(255,255,255,.03) inset, 0 12px 30px -20px rgba(0,0,0,.9);
+    color-scheme:dark;
+  }
+  :root[data-tema=claro]{
+    --bg:#f6f6f4; --surface:#ffffff; --surface2:#efefec; --line:#e2e2de; --txt:#17171a; --mut:#5f5f66;
+    --acc:#b8430f; --acc-txt:#fff; --acc2:#6a3fc9; --ok:#1d8f5b; --bad:#c43b3b;
+    --shadow:0 1px 2px rgba(0,0,0,.04), 0 10px 28px -20px rgba(0,0,0,.25);
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme: light){
+    :root:not([data-tema]){
+      --bg:#f6f6f4; --surface:#ffffff; --surface2:#efefec; --line:#e2e2de; --txt:#17171a; --mut:#5f5f66;
+      --acc:#b8430f; --acc-txt:#fff; --acc2:#6a3fc9; --ok:#1d8f5b; --bad:#c43b3b;
+      --shadow:0 1px 2px rgba(0,0,0,.04), 0 10px 28px -20px rgba(0,0,0,.25);
+      color-scheme:light;
+    }
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.5 Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  button,input,select{font:inherit;color:inherit}
+  a{color:inherit}
+  [hidden]{display:none!important}
+  :focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 16px}
+  .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+  /* ---------- topo ---------- */
+  header{padding:22px 0 0}
+  .topo{display:flex;align-items:center;gap:14px}
+  .radar{width:38px;height:38px;flex:none;border-radius:50%;border:1.5px solid color-mix(in srgb,var(--acc) 70%,transparent);position:relative;
+    background:repeating-radial-gradient(circle,transparent 0 6px,color-mix(in srgb,var(--acc) 22%,transparent) 6px 7px)}
+  .radar::after{content:"";position:absolute;inset:0;border-radius:50%;
+    background:conic-gradient(from 0deg,color-mix(in srgb,var(--acc) 55%,transparent),transparent 25%);animation:gira 4s linear infinite}
+  @keyframes gira{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){.radar::after{animation:none}}
+  h1{font-family:Fraunces,serif;font-weight:800;font-size:clamp(26px,4vw,34px);line-height:1;margin:0;letter-spacing:-.02em}
+  h1 em{font-style:normal;color:var(--acc)}
+  .sub{color:var(--mut);font-size:13px;margin:2px 0 0}
+  .topo .esp{flex:1}
+  .icone-btn{display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--line);
+    background:var(--surface);color:var(--txt);font-weight:600;font-size:13px;cursor:pointer;white-space:nowrap}
+  .icone-btn:hover{border-color:color-mix(in srgb,var(--txt) 25%,var(--line))}
+  .icone-btn svg{width:17px;height:17px;flex:none}
+  .icone-btn.destaque{background:var(--acc);border-color:var(--acc);color:var(--acc-txt)}
+
+  /* abas */
+  .abas{display:flex;gap:4px;margin:20px 0 0;border-bottom:1px solid var(--line)}
+  .aba{background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;color:var(--mut);padding:10px 14px 12px;
+    font-weight:600;font-size:15px;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+  .aba:hover{color:var(--txt)}
+  .aba[aria-selected=true]{color:var(--txt);border-bottom-color:var(--acc)}
+  .aba .n{font-size:12px;font-weight:600;padding:1px 8px;border-radius:999px;background:var(--surface2);color:var(--mut)}
+  .aba[aria-selected=true] .n{background:color-mix(in srgb,var(--acc) 18%,transparent);color:var(--acc)}
+
+  /* ---------- barra de busca e filtros (fixa no topo ao rolar) ---------- */
+  .barra{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 90%,transparent);
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:12px 0;border-bottom:1px solid var(--line)}
+  .linha{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .busca{flex:1 1 240px;position:relative}
+  .busca svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--mut);pointer-events:none}
+  .busca input{width:100%;height:40px;background:var(--surface);border:1px solid var(--line);color:var(--txt);padding:0 36px 0 36px;border-radius:12px;font-size:14px}
+  .busca input::-webkit-search-cancel-button{display:none}
+  .busca .x{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:28px;height:28px;border:0;border-radius:8px;background:none;color:var(--mut);cursor:pointer}
+  .campo{display:flex;align-items:center;gap:8px;height:40px;padding:0 6px 0 12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;font-size:13px;color:var(--mut)}
+  .campo select{border:0;background:none;color:var(--txt);font-weight:600;font-size:13px;padding:8px 4px;cursor:pointer;max-width:200px}
+  .seg{display:inline-flex;padding:3px;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:12px;height:40px}
+  .seg button{border:0;background:none;color:var(--mut);padding:0 12px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+  .seg button:hover{color:var(--txt)}
+  .seg button[aria-pressed=true]{background:var(--txt);color:var(--bg)}
+  .rot{font-size:12px;font-weight:600;color:var(--mut);margin-right:2px}
+  .filtros-btn{position:relative}
+  .filtros-btn .badge-n{min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--acc);color:var(--acc-txt);font-size:11px;display:inline-grid;place-items:center}
+
+  /* painel de mais filtros */
+  .painel{margin-top:10px;padding:14px;background:var(--surface);border:1px solid var(--line);border-radius:14px;display:grid;gap:14px}
+  .grupo h2{margin:0 0 8px;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{background:var(--surface2);border:1px solid transparent;color:var(--txt);padding:6px 12px;border-radius:999px;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap}
+  .chip:hover{border-color:var(--line)}
+  .chip small{color:var(--mut);margin-left:5px}
+  .chip[aria-pressed=true]{background:color-mix(in srgb,var(--acc) 14%,var(--surface));border-color:var(--acc);color:var(--acc)}
+  .chip[aria-pressed=true] small{color:inherit}
+  .gen .chip{text-transform:capitalize}
+  .opcao{display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer}
+  .opcao input{width:18px;height:18px;accent-color:var(--acc)}
+
+  /* resumo do que está aparecendo */
+  .resumo{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:14px 0 4px;font-size:13px;color:var(--mut)}
+  .resumo b{color:var(--txt);font-weight:600}
+  .ativo{display:inline-flex;align-items:center;gap:4px;padding:3px 6px 3px 10px;border-radius:999px;background:var(--surface2);color:var(--txt);font-size:12px;border:0;cursor:pointer}
+  .ativo::after{content:"✕";font-size:10px;color:var(--mut);width:16px;text-align:center}
+  .ativo:hover::after{color:var(--txt)}
+  .limpar{background:none;border:0;color:var(--acc);cursor:pointer;font-size:13px;font-weight:600;padding:2px 4px}
+
+  /* ---------- grade de cards ---------- */
+  main{padding-bottom:120px}
+  .grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;margin-top:6px}
+  .grade.desc{grid-template-columns:repeat(auto-fill,minmax(290px,1fr))}
+  .sec{grid-column:1/-1;display:flex;align-items:baseline;gap:10px;margin:22px 0 2px;font-family:Fraunces,serif;font-size:21px;font-weight:600}
+  .sec small{font:500 13px Inter,sans-serif;color:var(--mut)}
+  .sec.breve{color:var(--acc2)}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow);transition:border-color .18s,opacity .25s,transform .25s}
+  .card:hover{border-color:color-mix(in srgb,var(--txt) 18%,var(--line))}
+  .card.curti{border-color:color-mix(in srgb,var(--ok) 65%,transparent)}
+  .card.saindo{opacity:0;transform:scale(.97)}
+  .card.descartado{opacity:.55}
+  .capa{position:relative;aspect-ratio:1;background:var(--surface2);overflow:hidden;display:block}
+  .capa img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s}
+  .card:hover .capa img{transform:scale(1.03)}
+  .capa .ini{position:absolute;inset:0;display:grid;place-items:center;font:800 52px Fraunces,serif;color:color-mix(in srgb,var(--txt) 28%,transparent)}
+  .capa .play{position:absolute;right:10px;bottom:10px;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--txt);color:var(--bg);
+    box-shadow:0 6px 18px rgba(0,0,0,.35);opacity:0;transform:translateY(6px);transition:all .2s}
+  .card:hover .capa .play,.capa:focus-visible .play{opacity:1;transform:none}
+  @media (hover:none){.capa .play{opacity:1;transform:none;width:38px;height:38px}}
+  .selos{position:absolute;left:10px;top:10px;display:flex;gap:5px}
+  .selo{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:6px;
+    background:color-mix(in srgb,var(--bg) 78%,transparent);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:var(--txt)}
+  .selo.album{color:var(--acc)} .selo.ep{color:var(--acc2)} .selo.single{color:var(--ok)}
+  .selo.breve{background:var(--acc2);color:var(--bg)}
+  .corpo{padding:12px 14px 12px;display:flex;flex-direction:column;gap:6px;flex:1}
+  .titulo{font-weight:700;font-size:15px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .artista{align-self:flex-start;max-width:100%;background:none;border:0;padding:0;color:var(--mut);font-size:14px;cursor:pointer;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .artista:hover{color:var(--txt);text-decoration:underline}
+  .meta{display:flex;flex-wrap:wrap;gap:2px 10px;font-size:12px;color:var(--mut)}
+  .meta .top{color:var(--acc);font-weight:600}
+  .mais{align-self:flex-start;background:none;border:0;padding:0;color:var(--acc);font-size:12px;font-weight:600;cursor:pointer}
+  .mais:hover{text-decoration:underline}
+  .tags{display:flex;flex-wrap:wrap;gap:5px}
+  .tag{background:var(--surface2);border:1px solid transparent;color:var(--mut);font-size:12px;padding:2px 8px;border-radius:6px;cursor:pointer;text-transform:capitalize}
+  .tag:hover{color:var(--txt)}
+  .tag[aria-pressed=true]{border-color:var(--acc);color:var(--acc)}
+  .nome{margin:0;font-family:Fraunces,serif;font-size:22px;font-weight:600;line-height:1.15;letter-spacing:-.01em}
+  .porque{color:var(--mut);font-size:13px;line-height:1.45}
+  .porque b{color:var(--txt);font-weight:500}
+  .medidor{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--mut)}
+  .medidor i{flex:1;height:4px;border-radius:4px;background:var(--surface2);position:relative;overflow:hidden}
+  .medidor i::after{content:"";position:absolute;inset:0 auto 0 0;width:var(--p);border-radius:4px;background:linear-gradient(90deg,var(--acc2),var(--acc))}
+  .medidor a{color:var(--mut);font-weight:600;text-decoration:none}
+  .medidor a:hover{color:var(--txt);text-decoration:underline}
+  /* ações do card */
+  .acoes{display:flex;align-items:center;gap:6px;margin-top:auto;padding-top:8px}
+  .acoes .esp{flex:1}
+  .voto{height:34px;min-width:34px;padding:0 10px;border-radius:10px;border:1px solid var(--line);background:none;cursor:pointer;
+    display:inline-flex;align-items:center;justify-content:center;gap:6px;color:var(--mut);font-size:12px;font-weight:600;transition:all .15s}
+  .voto svg{width:16px;height:16px;flex:none}
+  .voto:hover{color:var(--txt);border-color:color-mix(in srgb,var(--txt) 25%,var(--line))}
+  .voto.v-curti[aria-pressed=true]{background:var(--ok);border-color:var(--ok);color:var(--bg)}
+  .voto.v-nao[aria-pressed=true]{background:var(--bad);border-color:var(--bad);color:var(--bg)}
+  .voto.v-conheco[aria-pressed=true]{background:var(--mut);border-color:var(--mut);color:var(--bg)}
+  .ouvir{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 14px;border-radius:999px;text-decoration:none;font-weight:700;font-size:13px;
+    background:var(--txt);color:var(--bg);white-space:nowrap}
+  .ouvir:hover{opacity:.88}
+  .ouvir svg{width:13px;height:13px}
+  .lanc .voto span{display:none}
+  .lfm{font-size:12px;font-weight:600;color:var(--mut);text-decoration:none}
+  .lfm:hover{color:var(--txt);text-decoration:underline}
+  .votos3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:2px}
+  .votos3 .voto{width:100%;padding:0 6px}
+  .vazio{grid-column:1/-1;color:var(--mut);padding:56px 16px;text-align:center}
+  .vazio b{display:block;font-family:Fraunces,serif;font-size:22px;color:var(--txt);margin-bottom:6px}
+  .vazio button{margin-top:14px}
+  .carregar{display:flex;justify-content:center;margin:24px 0 0}
+
+  /* ---------- aviso flutuante (desfazer) e lembrete de gostos ---------- */
+  .avisos{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:30;display:grid;gap:8px;width:min(560px,calc(100% - 32px))}
+  .aviso{display:flex;align-items:center;gap:12px;background:var(--txt);color:var(--bg);border-radius:14px;padding:10px 10px 10px 16px;
+    box-shadow:0 18px 40px -12px rgba(0,0,0,.55);font-size:14px;animation:sobe .25s ease}
+  @keyframes sobe{from{opacity:0;transform:translateY(8px)}}
+  .aviso p{margin:0;flex:1;line-height:1.35}
+  .aviso button{flex:none;border:0;border-radius:10px;padding:8px 12px;font-weight:700;font-size:13px;cursor:pointer;background:none;color:inherit}
+  .aviso button.forte{background:var(--acc);color:var(--acc-txt)}
+
+  /* ---------- ajustes (gaveta lateral) ---------- */
+  .fundo{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.45)}
+  .gaveta{position:fixed;top:0;right:0;bottom:0;z-index:41;width:min(400px,100%);background:var(--bg);border-left:1px solid var(--line);
+    padding:20px 20px 32px;overflow:auto;display:flex;flex-direction:column;gap:22px;animation:entra .25s ease}
+  @keyframes entra{from{transform:translateX(30px);opacity:0}}
+  .gaveta header{display:flex;align-items:center;justify-content:space-between;padding:0}
+  .gaveta h2{margin:0;font-family:Fraunces,serif;font-size:24px;font-weight:600}
+  .gaveta section h3{margin:0 0 4px;font-size:15px}
+  .gaveta section p{margin:0 0 10px;color:var(--mut);font-size:13px;line-height:1.45}
+  .gaveta .seg{width:100%}
+  .gaveta .seg button{flex:1}
+  .gaveta select{width:100%;height:42px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:0 10px;font-weight:600}
+  .gaveta ol{margin:6px 0 0;padding-left:20px;color:var(--mut);font-size:13px}
+  .gaveta .icone-btn{width:100%;justify-content:center}
+  .fechar{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-size:16px}
+  footer{color:var(--mut);font-size:12px;padding:28px 0 0;margin-top:40px;border-top:1px solid var(--line)}
+  footer a{color:var(--mut)}
+
+  @media (max-width:640px){
+    header{padding-top:14px}
+    .sub{display:none}
+    .topo .icone-btn span{display:none}
+    .topo .icone-btn{padding:0 11px}
+    .aba{padding:10px 10px 12px;font-size:14px}
+    .grade{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .grade.desc{grid-template-columns:1fr}
+    .lanc .corpo{padding:10px}
+    .lanc .ouvir span{display:none}
+    .lanc .ouvir{padding:0 11px}
+    .lanc .tags{display:none}
+    .campo select{max-width:none;min-width:0;flex:1}
+    .linha .campo{flex:1 1 0;min-width:0}
+    .linha .seg{flex:1 1 100%;min-width:0;overflow-x:auto;scrollbar-width:none}
+    .linha .seg::-webkit-scrollbar{display:none}
+    .seg button{flex:1 0 auto;padding:0 9px;font-size:12.5px}
+    .filtros-btn span:not(.badge-n){display:none}
+    .abas{overflow-x:auto;scrollbar-width:none;gap:0}
+    .abas::-webkit-scrollbar{display:none}
+    .aba{padding:10px 6px 12px;gap:5px;flex:none;font-size:13.5px}
+    .aba .n{padding:1px 6px;font-size:11px}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="topo">
+      <div class="radar" aria-hidden="true"></div>
+      <div>
+        <h1>Radar <em>Musical</em></h1>
+        <p class="sub" id="sub"></p>
+      </div>
+      <span class="esp"></span>
+      <button class="icone-btn destaque" id="instalar" type="button" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14"/></svg>
+        <span>Instalar app</span></button>
+      <button class="icone-btn" id="abrirAjustes" type="button" aria-haspopup="dialog">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
+        <span>Ajustes</span></button>
+    </div>
+    <nav class="abas" role="tablist" aria-label="Seções">
+      <button class="aba" role="tab" data-aba="lanc" aria-selected="true">Lançamentos <span class="n" id="nLanc"></span></button>
+      <button class="aba" role="tab" data-aba="desc" aria-selected="false">Descobertas <span class="n" id="nDesc"></span></button>
+      <button class="aba" role="tab" data-aba="salvos" aria-selected="false">Curtidos <span class="n" id="nSalvos"></span></button>
+    </nav>
+  </div>
+</header>
+
+<div class="barra">
+  <div class="wrap">
+    <div class="linha">
+      <label class="busca">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <span class="vh">Buscar</span>
+        <input type="search" id="q" autocomplete="off" placeholder="Buscar…  (atalho: /)">
+        <button class="x" id="limparBusca" type="button" aria-label="Limpar busca" hidden>✕</button>
+      </label>
+      <!-- só em Lançamentos -->
+      <div class="seg" role="group" aria-label="Período" data-so="lanc" id="periodo">
+        <button data-dias="7">7 dias</button><button data-dias="30">30 dias</button><button data-dias="90">3 meses</button><button data-dias="0">1 ano</button><button data-dias="-1" id="btnBreve">Em breve</button>
+      </div>
+      <label class="campo"><span>Ordenar</span><select id="ordem"></select></label>
+      <button class="icone-btn filtros-btn" id="abrirFiltros" type="button" aria-expanded="false" aria-controls="painel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></svg>
+        <span>Filtros</span><span class="badge-n" id="nFiltros" hidden></span></button>
+    </div>
+    <div class="painel" id="painel" hidden>
+      <div class="grupo" data-so="lanc"><h2>Tipo</h2><div class="chips" id="fTipo"></div></div>
+      <div class="grupo" data-so="lanc"><h2>Artistas</h2><div class="chips" id="fTop"></div></div>
+      <div class="grupo" data-so="desc"><h2>Popularidade</h2><div class="chips" id="fPop"></div></div>
+      <div class="grupo gen" data-so="lanc desc"><h2>Gêneros</h2><div class="chips" id="fGen"></div></div>
+      <div class="grupo" data-so="lanc desc">
+        <h2>Mostrar</h2>
+        <label class="opcao" data-so="lanc"><input type="checkbox" id="fAgrupar"> No máximo 3 por artista <small style="color:var(--mut)">(evita que quem lança muitos singles tome a lista)</small></label>
+        <label class="opcao"><input type="checkbox" id="fDescartados"> Incluir o que marquei como “não curti” ou “já conheço”</label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main class="wrap">
+  <div class="resumo" id="resumo" aria-live="polite"></div>
+  <div class="grade" id="grade"></div>
+  <div class="carregar"><button class="icone-btn" id="carregarMais" type="button" hidden></button></div>
+  <footer>
+    Dados de <a href="https://www.last.fm" target="_blank" rel="noopener">Last.fm</a> (powered by AudioScrobbler)
+    e <span id="fonteRodape">Deezer</span>. Suas marcações ficam neste navegador; em <b>Ajustes</b> dá pra salvar o arquivo
+    que leva elas pra próxima geração do radar.
+  </footer>
+</main>
+
+<div class="avisos" id="avisos"></div>
+
+<div id="ajustes" hidden>
+  <div class="fundo" data-fechar></div>
+  <aside class="gaveta" role="dialog" aria-modal="true" aria-labelledby="tituloAjustes">
+    <header><h2 id="tituloAjustes">Ajustes</h2><button class="fechar" type="button" data-fechar aria-label="Fechar">✕</button></header>
+    <section>
+      <h3>Ouvir no</h3>
+      <p>Em qual app o botão <b>Ouvir</b> abre as músicas. Não muda a lista, só o destino do botão.</p>
+      <select id="appMusica" aria-label="App de música">
+        <option value="spotify">Spotify</option><option value="apple">Apple Music</option><option value="ytmusic">YouTube Music</option>
+        <option value="deezer">Deezer</option><option value="tidal">Tidal</option><option value="amazon">Amazon Music</option>
+      </select>
+    </section>
+    <section>
+      <h3>Aparência</h3>
+      <div class="seg" role="group" aria-label="Tema" id="tema">
+        <button data-tema="auto">Automático</button><button data-tema="claro">Claro</button><button data-tema="escuro">Escuro</button>
+      </div>
+    </section>
+    <section>
+      <h3>Suas marcações</h3>
+      <p id="txtGostos"></p>
+      <button class="icone-btn destaque" id="exportar" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14"/></svg>
+        Baixar arquivo de marcações</button>
+      <ol>
+        <li>Coloque o arquivo na pasta <b>gostos/</b> do radar (ou deixe em Downloads).</li>
+        <li>Na próxima vez que o radar for gerado, “não curti” e “já conheço” somem, e os curtidos viram referência pra novas descobertas.</li>
+      </ol>
+    </section>
+    <section id="secInstalar" hidden>
+      <h3>Instalar no celular</h3>
+      <p id="txtInstalar"></p>
+    </section>
+  </aside>
+</div>
+
+<script>
+const D = /*__DADOS__*/null;
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt = n => n >= 1e6 ? (n/1e6).toFixed(1).replace(".",",")+" mi" : n >= 1e3 ? Math.round(n/1e3)+" mil" : String(n);
+const semAcento = s => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+const cmp = (a, b) => a.localeCompare(b, "pt-BR", {sensitivity:"base"});
+const ler = (k, padrao) => { try { const v = localStorage.getItem(k); return v === null ? padrao : JSON.parse(v); } catch(e){ return padrao; } };
+const gravar = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
+const POR_PAGINA = 60;
+const hojeISO = (() => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset()*6e4).toISOString().slice(0, 10); })();
+const diasAtras = n => { const d = new Date(hojeISO + "T12:00:00"); d.setDate(d.getDate() - n); return d.toISOString().slice(0, 10); };
+
+/* ---------- tema ---------- */
+function aplicarTema(t){
+  if (t === "claro" || t === "escuro") document.documentElement.dataset.tema = t; else delete document.documentElement.dataset.tema;
+  $$("#tema [data-tema]").forEach(b => b.setAttribute("aria-pressed", b.dataset.tema === (t || "auto")));
+  gravar("radar_tema2", t || "auto");
+}
+aplicarTema(ler("radar_tema2", (() => { try { return localStorage.getItem("radar_tema") || "auto"; } catch(e){ return "auto"; } })()));
+$$("#tema [data-tema]").forEach(b => b.onclick = () => aplicarTema(b.dataset.tema));
+
+/* ---------- app de música ---------- */
+const APPS = {
+  spotify: {nome:"Spotify", busca: q => `https://open.spotify.com/search/${encodeURIComponent(q)}`},
+  apple:   {nome:"Apple Music", busca: q => `https://music.apple.com/search?term=${encodeURIComponent(q)}`},
+  ytmusic: {nome:"YouTube Music", busca: q => `https://music.youtube.com/search?q=${encodeURIComponent(q)}`},
+  deezer:  {nome:"Deezer", busca: q => `https://www.deezer.com/search/${encodeURIComponent(q)}`},
+  tidal:   {nome:"Tidal", busca: q => `https://listen.tidal.com/search?q=${encodeURIComponent(q)}`},
+  amazon:  {nome:"Amazon Music", busca: q => `https://music.amazon.com/search/${encodeURIComponent(q)}`},
+};
+let app = APPS[D.app] ? D.app : "spotify";
+try { const s = localStorage.getItem("radar_app"); if (APPS[s]) app = s; } catch(e){}
+$("#appMusica").value = app;
+$("#appMusica").onchange = e => { app = e.target.value; try { localStorage.setItem("radar_app", app); } catch(err){} render(); };
+const linkLanc = r => (r.fonte === app && r.url) ? r.url : APPS[app].busca(`${r.artista} ${r.titulo}`);
+const linkArtista = nome => APPS[app].busca(nome);
+$("#fonteRodape").textContent = D.fonte === "spotify" ? "Spotify" : "Deezer";
+
+/* ---------- dados: gêneros sem variações, datas ---------- */
+const normTag = t => String(t).toLowerCase().replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim();
+for (const it of [...D.lancamentos, ...D.descobertas]) it.tags = [...new Set((it.tags || []).map(normTag))].filter(Boolean);
+const chaveL = r => r.artista + " — " + r.titulo;
+function quando(iso){
+  if (iso > hojeISO) {
+    const d = Math.round((new Date(iso) - new Date(hojeISO)) / 864e5);
+    return d <= 1 ? "amanhã" : `em ${d} dias`;
+  }
+  const d = Math.round((new Date(hojeISO) - new Date(iso)) / 864e5);
+  if (d === 0) return "hoje";
+  if (d === 1) return "ontem";
+  if (d < 7) return `há ${d} dias`;
+  if (d < 30) return `há ${Math.round(d/7)} semana${Math.round(d/7) > 1 ? "s" : ""}`;
+  return new Date(iso + "T12:00:00").toLocaleDateString("pt-BR", {day:"numeric", month:"short", year: d > 300 ? "numeric" : undefined});
+}
+$("#sub").textContent = `${D.usuario} · ${D.total.toLocaleString("pt-BR")} artistas no seu histórico · atualizado em ${D.gerado}`;
+
+/* ---------- marcações (curti / não curti / já conheço), com data pra juntar aparelhos ---------- */
+const CHAVE = "radar_gostos_v3";
+const G = {descobertas:{}, lancamentos:{}}, R = {descobertas:{}, lancamentos:{}};
+function absorver(fonte, tPadrao = 0){
+  for (const k of ["descobertas","lancamentos"])
+    for (const [n, x] of Object.entries((fonte || {})[k] || {})) {
+      const e = (x && typeof x === "object") ? {v: x.v ?? null, t: +x.t || 0} : {v: x || null, t: tPadrao};
+      if (!R[k][n] || e.t > R[k][n].t) { R[k][n] = e; if (e.v) G[k][n] = e.v; else delete G[k][n]; }
+    }
+}
+absorver(ler(CHAVE, null));
+absorver(ler("radar_gostos_v2", null), 1);
+absorver({descobertas: Object.fromEntries(ler("radar_ocultos", []).map(n => [n, "conheco"]))}, 1);
+absorver(D.gostos);
+const salvarMarcas = () => gravar(CHAVE, R);
+salvarMarcas();
+let novasMarcas = ler("radar_novas", 0);
+function marcar(tipo, chave, valor, quiet){
+  const anterior = G[tipo][chave] || null;
+  const novo = anterior === valor ? null : valor;
+  R[tipo][chave] = {v: novo, t: Date.now()};
+  if (novo) G[tipo][chave] = novo; else delete G[tipo][chave];
+  salvarMarcas();
+  novasMarcas++; gravar("radar_novas", novasMarcas);
+  atualizaTxtGostos();
+  return anterior;
+}
+
+/* ---------- estado da tela (lembrado neste navegador) ---------- */
+const E = Object.assign({
+  aba: "lanc", dias: 30, ordLanc: "data", ordDesc: "pontos", tipos: ["album","ep"], top: 0, pop: 0,
+  agrupar: true, descartados: false,
+}, ler("radar_estado", {}));
+E.q = ""; E.gen = []; E.artista = ""; let pagina = 1;
+const salvarEstado = () => gravar("radar_estado", {aba:E.aba, dias:E.dias, ordLanc:E.ordLanc, ordDesc:E.ordDesc,
+  tipos:E.tipos, top:E.top, pop:E.pop, agrupar:E.agrupar, descartados:E.descartados});
+
+const ORDENS = {
+  lanc: [["data","Mais recentes"],["rank","Dos artistas que mais ouço"],["artista","Artista (A–Z)"],["antigos","Mais antigos"]],
+  desc: [["pontos","Mais recomendados"],["sementes","Mais ligados ao que ouço"],["under","Menos conhecidos primeiro"],["pop","Mais conhecidos primeiro"],["nome","Nome (A–Z)"]],
+};
+const TIPOS = [["album","Álbuns"],["ep","EPs"],["single","Singles"]];
+const TOPS = [[0,"Todos"],[50,"Meu top 50"],[200,"Meu top 200"],[1000,"Meu top 1000"]];
+const POPS = [[0,"Qualquer"],[1000000,"Até 1 mi de ouvintes"],[200000,"Até 200 mil"],[50000,"Até 50 mil (underground)"]];
+
+/* ---------- filtragem ---------- */
+const passaBusca = (txt) => !E.q || semAcento(txt).includes(semAcento(E.q));
+const passaGen = tags => !E.gen.length || tags.some(t => E.gen.includes(t));
+const descartado = v => v === "nao" || v === "conheco";
+
+// período: -1 = "Em breve" (data no futuro); 0 = 12 meses; N = últimos N dias (até hoje)
+const noPeriodo = (r, dias) => dias === -1 ? r.data > hojeISO : r.data <= hojeISO && (!dias || r.data >= diasAtras(dias));
+function filtrarLanc(ignorar = {}){
+  return D.lancamentos.filter(r =>
+    (ignorar.dias || noPeriodo(r, E.dias)) &&
+    (ignorar.tipo || E.tipos.includes(r.tipo) || (r.tipo === "compilation" && E.tipos.includes("album"))) &&
+    (ignorar.top || !E.top || r.rank <= E.top) &&
+    (ignorar.gen || passaGen(r.tags)) &&
+    (!E.artista || r.artista === E.artista) &&
+    (E.descartados || !descartado(G.lancamentos[chaveL(r)])) &&
+    passaBusca([r.artista, r.titulo, ...r.tags].join(" ")));
+}
+function filtrarDesc(ignorar = {}){
+  return D.descobertas.filter(a =>
+    (ignorar.pop || !E.pop || (a.ouvintes && a.ouvintes < E.pop)) &&
+    (ignorar.gen || passaGen(a.tags)) &&
+    (E.descartados || !descartado(G.descobertas[a.nome])) &&
+    passaBusca([a.nome, ...a.tags, ...a.porque].join(" ")));
+}
+function ordenar(itens){
+  const o = E.aba === "lanc" ? E.ordLanc : E.ordDesc;
+  const f = {
+    data: (a, b) => b.data.localeCompare(a.data), antigos: (a, b) => a.data.localeCompare(b.data),
+    rank: (a, b) => a.rank - b.rank || b.data.localeCompare(a.data), artista: (a, b) => cmp(a.artista, b.artista) || b.data.localeCompare(a.data),
+    pontos: (a, b) => b.pontos - a.pontos, sementes: (a, b) => b.sementes - a.sementes || b.pontos - a.pontos,
+    under: (a, b) => (a.ouvintes || 1e12) - (b.ouvintes || 1e12), pop: (a, b) => b.ouvintes - a.ouvintes, nome: (a, b) => cmp(a.nome, b.nome),
+  }[o];
+  return itens.sort(f);
+}
+// no máximo 3 por artista: o 1º card de cada artista mostra "+N deste artista"
+function agrupar(itens){
+  if (!E.agrupar || E.artista || E.aba !== "lanc") return itens;
+  const total = {}, visto = {}, saida = [];
+  for (const r of itens) total[r.artista] = (total[r.artista] || 0) + 1;
+  for (const r of itens) {
+    visto[r.artista] = (visto[r.artista] || 0) + 1;
+    if (visto[r.artista] <= 3) saida.push(visto[r.artista] === 1 && total[r.artista] > 3 ? {...r, _mais: total[r.artista] - 3} : r);
+  }
+  return saida;
+}
+
+/* ---------- desenho dos cards ---------- */
+const ICO = {
+  curti:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7c0 5.6-7.5 10.2-7.5 10.2z"/></svg>',
+  nao:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+  conheco:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+  play:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>',
+};
+const ROT = {curti:"Curti", nao:"Não curti", conheco:"Conheço"};
+const DICA = {curti:"Curti", nao:"Não curti: esconder e recomendar menos parecidos", conheco:"Já conheço: esconder das descobertas"};
+const votos = (tipo, chave, opcoes) => opcoes.map(v =>
+  `<button class="voto v-${v}" data-voto="${v}" data-tipo="${tipo}" data-chave="${esc(chave)}" aria-pressed="${G[tipo][chave] === v}" title="${DICA[v]}" aria-label="${ROT[v]}">${ICO[v]}<span>${ROT[v]}</span></button>`).join("");
+const tagsHtml = tags => tags.length ? `<div class="tags">${tags.map(t => `<button class="tag" data-tag="${esc(t)}" aria-pressed="${E.gen.includes(t)}">${esc(t)}</button>`).join("")}</div>` : "";
+const iniciais = s => esc(String(s).trim().split(/\s+/).slice(0, 2).map(p => p[0]).join("").toUpperCase());
+const nomeTipo = {album:"Álbum", ep:"EP", single:"Single", compilation:"Coletânea"};
+
+function cardLanc(r){
+  const k = chaveL(r), v = G.lancamentos[k] || "", breve = r.data > hojeISO, link = esc(linkLanc(r));
+  return `<article class="card lanc ${v === "curti" ? "curti" : descartado(v) ? "descartado" : ""}">
+    <a class="capa" href="${link}" target="_blank" rel="noopener" aria-label="Ouvir ${esc(r.titulo)} no ${APPS[app].nome}">
+      ${r.capa ? `<img loading="lazy" decoding="async" src="${esc(r.capa)}" alt="">` : `<div class="ini">${iniciais(r.artista)}</div>`}
+      <span class="selos"><span class="selo ${r.tipo}">${nomeTipo[r.tipo] || r.tipo}</span>${breve ? `<span class="selo breve">Em breve</span>` : ""}</span>
+      <span class="play">${ICO.play}</span></a>
+    <div class="corpo">
+      <div class="titulo" title="${esc(r.titulo)}">${esc(r.titulo)}</div>
+      <button class="artista" data-artista="${esc(r.artista)}" title="Ver só ${esc(r.artista)}">${esc(r.artista)}</button>
+      <div class="meta"><span>${quando(r.data)}</span>${r.rank <= 100 ? `<span class="top">★ seu top ${r.rank}</span>` : ""}</div>
+      ${r._mais ? `<button class="mais" data-artista="${esc(r.artista)}">+${r._mais} deste artista</button>` : ""}
+      ${tagsHtml(r.tags)}
+      <div class="acoes">${votos("lancamentos", k, ["curti","nao"])}<span class="esp"></span>
+        <a class="ouvir" href="${link}" target="_blank" rel="noopener" title="Ouvir no ${APPS[app].nome}">${ICO.play}<span>Ouvir</span></a></div>
+    </div></article>`;
+}
+const maxLog = Math.log10(Math.max(10, ...D.descobertas.map(a => a.ouvintes || 0)));
+function cardDesc(a){
+  const v = G.descobertas[a.nome] || "", p = a.ouvintes ? Math.max(4, Math.log10(a.ouvintes) / maxLog * 100) : 0;
+  return `<article class="card desc ${v === "curti" ? "curti" : descartado(v) ? "descartado" : ""}"><div class="corpo">
+    <h2 class="nome">${esc(a.nome)}</h2>
+    ${tagsHtml(a.tags)}
+    <div class="porque">${a.porque.length ? `Porque você ouve <b>${a.porque.map(esc).join("</b>, <b>")}</b>${a.sementes > 3 ? ` e mais ${a.sementes - 3}` : ""}` : "Você marcou como <b>curti</b>."}</div>
+    ${a.ouvintes ? `<div class="medidor"><i style="--p:${p}%" title="Ouvintes no Last.fm"></i><span>${fmt(a.ouvintes)} ouvintes</span></div>` : ""}
+    <div class="acoes">
+      <a class="ouvir" href="${esc(linkArtista(a.nome))}" target="_blank" rel="noopener" title="Ouvir no ${APPS[app].nome}">${ICO.play}<span>Ouvir</span></a>
+      <a class="lfm" href="${esc(a.lastfm)}" target="_blank" rel="noopener">Ver no Last.fm ↗</a></div>
+    <div class="votos3">${votos("descobertas", a.nome, ["curti","conheco","nao"])}</div>
+  </div></article>`;
+}
+
+/* ---------- controles ---------- */
+function chips(el, opcoes, ativo, aoClicar){
+  el.innerHTML = opcoes.map(([v, t, n]) => `<button class="chip" data-v="${esc(v)}" aria-pressed="${ativo(v)}">${esc(t)}${n !== undefined ? `<small>${n}</small>` : ""}</button>`).join("");
+  el.onclick = e => { const b = e.target.closest("[data-v]"); if (b) aoClicar(b.dataset.v); };
+}
+function montarControles(){
+  const lanc = E.aba === "lanc";
+  $$("[data-so]").forEach(el => el.hidden = !el.dataset.so.split(" ").includes(E.aba));
+  $("#ordem").innerHTML = (ORDENS[E.aba] || ORDENS.desc).map(([v, t]) => `<option value="${v}">${t}</option>`).join("");
+  $("#ordem").value = lanc ? E.ordLanc : E.ordDesc;
+  $("#ordem").closest(".campo").hidden = E.aba === "salvos";
+  $("#abrirFiltros").hidden = E.aba === "salvos";
+  if (E.aba === "salvos") $("#painel").hidden = true;
+  // períodos com contagem
+  const base = filtrarLanc({dias: true});
+  $$("#periodo [data-dias]").forEach(b => {
+    const d = +b.dataset.dias, n = base.filter(r => noPeriodo(r, d)).length;
+    b.setAttribute("aria-pressed", d === E.dias);
+    b.title = `${n} lançamento${n === 1 ? "" : "s"}`;
+  });
+  $("#btnBreve").hidden = !D.lancamentos.some(r => r.data > hojeISO);
+  const contTipo = {}; filtrarLanc({tipo: true}).forEach(r => { const t = r.tipo === "compilation" ? "album" : r.tipo; contTipo[t] = (contTipo[t] || 0) + 1; });
+  chips($("#fTipo"), TIPOS.map(([v, t]) => [v, t, contTipo[v] || 0]), v => E.tipos.includes(v), v => {
+    E.tipos = E.tipos.includes(v) ? E.tipos.filter(x => x !== v) : [...E.tipos, v]; mudou(); });
+  chips($("#fTop"), TOPS, v => +v === E.top, v => { E.top = +v; mudou(); });
+  chips($("#fPop"), POPS, v => +v === E.pop, v => { E.pop = +v; mudou(); });
+  // gêneros: os 24 mais comuns no que está aparecendo (ignorando o próprio filtro de gênero)
+  const cont = {};
+  (lanc ? filtrarLanc({gen: true}) : filtrarDesc({gen: true})).forEach(i => i.tags.forEach(t => cont[t] = (cont[t] || 0) + 1));
+  const top = Object.entries(cont).sort((a, b) => b[1] - a[1]).slice(0, 24);
+  E.gen.filter(g => !cont[g]).forEach(g => top.push([g, 0]));
+  $("#fGen").closest(".grupo").hidden = !top.length || E.aba === "salvos" || !$("#fGen").closest(".grupo").dataset.so.includes(E.aba);
+  chips($("#fGen"), top.map(([t, n]) => [t, t, n]), v => E.gen.includes(v), v => alternaGen(v));
+  $("#fAgrupar").checked = E.agrupar; $("#fDescartados").checked = E.descartados;
+  const n = (lanc ? (E.top ? 1 : 0) + (E.tipos.length !== 2 || !E.tipos.includes("album") || !E.tipos.includes("ep") ? 1 : 0) + (!E.agrupar ? 1 : 0)
+                  : (E.pop ? 1 : 0)) + E.gen.length + (E.descartados ? 1 : 0);
+  $("#nFiltros").hidden = !n; $("#nFiltros").textContent = n;
+}
+const alternaGen = g => { E.gen = E.gen.includes(g) ? E.gen.filter(x => x !== g) : [...E.gen, g]; mudou(); };
+
+function resumo(qtd, total){
+  const partes = [];
+  if (E.artista) partes.push([`Artista: ${E.artista}`, () => { E.artista = ""; }]);
+  if (E.q) partes.push([`“${E.q}”`, () => { E.q = ""; $("#q").value = ""; }]);
+  E.gen.forEach(g => partes.push([g, () => { E.gen = E.gen.filter(x => x !== g); }]));
+  if (E.aba === "lanc" && E.top) partes.push([`Meu top ${E.top}`, () => { E.top = 0; }]);
+  if (E.aba === "desc" && E.pop) partes.push([POPS.find(p => p[0] === E.pop)[1], () => { E.pop = 0; }]);
+  const rotulo = E.aba === "lanc" ? `lançamento${qtd === 1 ? "" : "s"}` : E.aba === "desc" ? `artista${qtd === 1 ? "" : "s"} pra descobrir` : "curtidos";
+  const periodo = E.aba !== "lanc" ? "" : E.dias === -1 ? " · em breve (próximos 60 dias)"
+    : ` · ${E.dias ? `últimos ${E.dias === 90 ? "3 meses" : E.dias + " dias"}` : "último ano"}`;
+  const el = $("#resumo");
+  el.innerHTML = `<span><b>${qtd.toLocaleString("pt-BR")}</b> ${rotulo}${periodo}</span>` +
+    partes.map((p, i) => `<button class="ativo" data-i="${i}" aria-label="Remover filtro ${esc(p[0])}">${esc(p[0])}</button>`).join("") +
+    (partes.length > 1 ? `<button class="limpar" data-limpar>Limpar tudo</button>` : "");
+  el.onclick = e => {
+    const b = e.target.closest("[data-i]");
+    if (b) { partes[+b.dataset.i][1](); mudou(); }
+    if (e.target.closest("[data-limpar]")) { partes.forEach(p => p[1]()); mudou(); }
+  };
+}
+
+/* ---------- render ---------- */
+let itensAtuais = [];
+function render(manterPagina){
+  if (!manterPagina) pagina = 1;
+  montarControles();
+  const grade = $("#grade");
+  grade.className = "grade" + (E.aba === "desc" ? " desc" : "");
+  let html = "";
+  if (E.aba === "salvos") {
+    const ds = D.descobertas.filter(a => G.descobertas[a.nome] === "curti" && passaBusca(a.nome));
+    const ls = D.lancamentos.filter(r => G.lancamentos[chaveL(r)] === "curti" && passaBusca(r.artista + " " + r.titulo));
+    resumo(ds.length + ls.length);
+    if (!ds.length && !ls.length) {
+      grade.innerHTML = `<p class="vazio"><b>Nada curtido ainda</b>Toque em <b>Curti</b> num lançamento ou numa descoberta e ele aparece aqui.</p>`;
+      $("#carregarMais").hidden = true; return;
+    }
+    if (ls.length) html += `<h2 class="sec">Lançamentos<small>${ls.length}</small></h2>` + ls.map(cardLanc).join("");
+    if (ds.length) html += `<h2 class="sec">Artistas<small>${ds.length}</small></h2>` + ds.map(cardDesc).join("");
+    grade.innerHTML = html; $("#carregarMais").hidden = true; return;
+  }
+  const lanc = E.aba === "lanc";
+  itensAtuais = agrupar(ordenar(lanc ? filtrarLanc() : filtrarDesc()));
+  const total = lanc ? filtrarLanc().length : itensAtuais.length;
+  resumo(total);
+  if (!itensAtuais.length) {
+    const vazioTotal = lanc && !D.lancamentos.length;
+    grade.innerHTML = vazioTotal
+      ? `<p class="vazio"><b>Nenhum lançamento ainda</b>A conferência dos lançamentos ainda não rodou. Rode o radar de novo mais tarde.</p>`
+      : `<p class="vazio"><b>Nada com esses filtros</b>${lanc && E.dias && E.dias < 90 ? "Tente um período maior ou " : "Tente "}tirar algum filtro.
+         <br><button class="icone-btn" data-limpar-tudo>Limpar filtros</button></p>`;
+    $("#carregarMais").hidden = true; return;
+  }
+  const mostra = itensAtuais.slice(0, pagina * POR_PAGINA);
+  const porData = lanc && (E.ordLanc === "data" || E.ordLanc === "antigos");
+  let grupo = "";
+  for (const it of mostra) {
+    if (porData) {
+      const g = it.data.slice(0, 7);
+      if (g !== grupo) {
+        grupo = g;
+        const n = itensAtuais.filter(x => x.data.slice(0, 7) === g).length;
+        const nome = (s => s[0].toUpperCase() + s.slice(1))(new Date(g + "-15T12:00:00").toLocaleDateString("pt-BR", {month:"long", year:"numeric"}));
+        html += `<h2 class="sec ${it.data > hojeISO ? "breve" : ""}">${nome}<small>${n}</small></h2>`;
+      }
+    }
+    html += lanc ? cardLanc(it) : cardDesc(it);
+  }
+  grade.innerHTML = html;
+  const resta = itensAtuais.length - mostra.length;
+  $("#carregarMais").hidden = resta <= 0;
+  $("#carregarMais").textContent = `Mostrar mais (${resta.toLocaleString("pt-BR")} restantes)`;
+}
+function mudou(){ salvarEstado(); render(); }
+function contarAbas(){
+  $("#nLanc").textContent = D.lancamentos.filter(r => noPeriodo(r, 30) && !descartado(G.lancamentos[chaveL(r)]) && (r.tipo === "album" || r.tipo === "ep")).length;
+  $("#nLanc").title = "Álbuns e EPs dos últimos 30 dias";
+  $("#nDesc").textContent = D.descobertas.filter(a => !G.descobertas[a.nome]).length;
+  $("#nDesc").title = "Ainda não avaliados";
+  const nSalvos = D.descobertas.filter(a => G.descobertas[a.nome] === "curti").length + D.lancamentos.filter(r => G.lancamentos[chaveL(r)] === "curti").length;
+  $("#nSalvos").textContent = nSalvos; $("#nSalvos").hidden = !nSalvos;
+}
+
+/* ---------- eventos ---------- */
+function mostrarAba(a){
+  E.aba = a; E.artista = ""; salvarEstado();
+  $$(".aba").forEach(b => b.setAttribute("aria-selected", b.dataset.aba === a));
+  render(); window.scrollTo({top: 0});
+}
+$$(".aba").forEach(b => b.onclick = () => mostrarAba(b.dataset.aba));
+let tBusca;
+$("#q").oninput = e => { clearTimeout(tBusca); $("#limparBusca").hidden = !e.target.value;
+  tBusca = setTimeout(() => { E.q = e.target.value.trim(); render(); }, 150); };
+$("#limparBusca").onclick = () => { $("#q").value = ""; E.q = ""; $("#limparBusca").hidden = true; render(); $("#q").focus(); };
+document.addEventListener("keydown", e => {
+  if (e.key === "/" && !/input|select|textarea/i.test(document.activeElement.tagName)) { e.preventDefault(); $("#q").focus(); }
+  if (e.key === "Escape") { if (!$("#ajustes").hidden) fecharAjustes(); else if (!$("#painel").hidden) alternaPainel(false); }
+});
+$$("#periodo [data-dias]").forEach(b => b.onclick = () => { E.dias = +b.dataset.dias; mudou(); });
+$("#ordem").onchange = e => { if (E.aba === "lanc") E.ordLanc = e.target.value; else E.ordDesc = e.target.value; mudou(); };
+function alternaPainel(abrir){
+  const p = $("#painel"); p.hidden = abrir === undefined ? !p.hidden : !abrir;
+  $("#abrirFiltros").setAttribute("aria-expanded", !p.hidden);
+}
+$("#abrirFiltros").onclick = () => alternaPainel();
+$("#fAgrupar").onchange = e => { E.agrupar = e.target.checked; mudou(); };
+$("#fDescartados").onchange = e => { E.descartados = e.target.checked; mudou(); };
+$("#carregarMais").onclick = () => { pagina++; render(true); };
+// carrega mais sozinho ao chegar perto do fim
+if ("IntersectionObserver" in window) new IntersectionObserver(es => {
+  if (es[0].isIntersecting && !$("#carregarMais").hidden) { pagina++; render(true); }
+}, {rootMargin: "600px"}).observe($("#carregarMais"));
+
+$("#grade").onclick = e => {
+  const v = e.target.closest("[data-voto]");
+  if (v) {
+    const {tipo, chave, voto} = v.dataset;
+    const anterior = marcar(tipo, chave, voto);
+    const agora = G[tipo][chave];
+    const card = v.closest(".card");
+    const some = descartado(agora) && !E.descartados && E.aba !== "salvos";
+    const some2 = E.aba === "salvos" && agora !== "curti";
+    if (some || some2) {
+      card.classList.add("saindo");
+      setTimeout(() => { render(true); contarAbas(); }, 220);
+      aviso(`${esc(tipo === "descobertas" ? chave : chave.split(" — ")[1] || chave)}: ${agora ? ROT[agora].toLowerCase() : "desmarcado"}.`, "Desfazer", () => {
+        R[tipo][chave] = {v: anterior, t: Date.now()}; if (anterior) G[tipo][chave] = anterior; else delete G[tipo][chave];
+        salvarMarcas(); render(true); contarAbas();
+      });
+    } else { render(true); contarAbas(); }
+    lembrarDeSalvar();
+    return;
+  }
+  const t = e.target.closest("[data-tag]"); if (t) { alternaGen(t.dataset.tag); return; }
+  const a = e.target.closest("[data-artista]");
+  if (a) { E.artista = a.dataset.artista; E.dias = 0; mudou(); window.scrollTo({top: 0, behavior: "smooth"}); return; }
+  if (e.target.closest("[data-limpar-tudo]")) {
+    E.q = ""; $("#q").value = ""; E.gen = []; E.artista = ""; E.top = 0; E.pop = 0; E.descartados = false; E.tipos = ["album","ep"];
+    if (E.aba === "lanc" && E.dias && E.dias < 90) E.dias = 90;
+    mudou();
+  }
+};
+
+/* ---------- avisos ---------- */
+function aviso(texto, acao, fn, forte){
+  const el = document.createElement("div");
+  el.className = "aviso"; el.setAttribute("role", "status");
+  el.innerHTML = `<p>${texto}</p>${acao ? `<button class="${forte ? "forte" : ""}">${acao}</button>` : ""}<button aria-label="Fechar aviso">✕</button>`;
+  const fecha = () => el.remove();
+  const [b1, b2] = el.querySelectorAll("button");
+  if (acao) b1.onclick = () => { fn(); fecha(); };
+  (b2 || b1).onclick = fecha;
+  $("#avisos").append(el);
+  if (!forte) setTimeout(fecha, 6000);
+  return el;
+}
+let avisoSalvar = null;
+function lembrarDeSalvar(){
+  if (novasMarcas < 5 || avisoSalvar || ler("radar_lembrete_off", false)) return;
+  avisoSalvar = aviso(`Você fez <b>${novasMarcas}</b> marcações. Baixe o arquivo pra elas valerem na próxima geração do radar.`, "Baixar", exportar, true);
+  avisoSalvar.querySelector("button:last-child").addEventListener("click", () => gravar("radar_lembrete_off", true));
+}
+
+/* ---------- ajustes ---------- */
+let focoAntes = null;
+function abrirAjustes(){ focoAntes = document.activeElement; $("#ajustes").hidden = false; atualizaTxtGostos(); $("#ajustes .fechar").focus(); }
+function fecharAjustes(){ $("#ajustes").hidden = true; focoAntes && focoAntes.focus(); }
+$("#abrirAjustes").onclick = abrirAjustes;
+$$("#ajustes [data-fechar]").forEach(b => b.onclick = fecharAjustes);
+function atualizaTxtGostos(){
+  const vals = [...Object.values(G.descobertas), ...Object.values(G.lancamentos)];
+  const c = v => vals.filter(x => x === v).length;
+  $("#txtGostos").innerHTML = vals.length
+    ? `<b>${c("curti")}</b> curtidos · <b>${c("nao")}</b> não curtidos · <b>${c("conheco")}</b> já conhecidos.` +
+      (novasMarcas ? ` <b>${novasMarcas}</b> ainda não foram baixadas.` : " Tudo já foi baixado.")
+    : "Você ainda não marcou nada. Use os botões dos cards: curti, não curti e já conheço.";
+}
+function exportar(){
+  const d = new Date(), p = n => String(n).padStart(2, "0");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify({versao: 3, exportado: d.toISOString(), descobertas: R.descobertas, lancamentos: R.lancamentos}, null, 2)], {type:"application/json"}));
+  a.download = `radar_gostos_${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}.json`;
+  document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  novasMarcas = 0; gravar("radar_novas", 0); atualizaTxtGostos();
+  if (avisoSalvar) { avisoSalvar.remove(); avisoSalvar = null; }
+  aviso("Arquivo baixado. Coloque na pasta <b>gostos/</b> do radar (ou deixe em Downloads).");
+}
+$("#exportar").onclick = exportar;
+
+/* ---------- instalar (só quando a página está publicada em https) ---------- */
+const instalada = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+const ehIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+let pedidoInstalar = null;
+if (location.protocol === "https:" && !instalada) {
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+  window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); pedidoInstalar = e; $("#instalar").hidden = false; });
+  if (ehIOS) $("#instalar").hidden = false;
+}
+$("#secInstalar").hidden = false;
+$("#txtInstalar").innerHTML = instalada ? "O radar já está instalado neste aparelho."
+  : location.protocol === "https:" ? (ehIOS ? "No Safari: botão <b>Compartilhar</b> → <b>Adicionar à Tela de Início</b> → Adicionar." : "Use o botão <b>Instalar app</b> no topo, ou o menu do navegador → Instalar app.")
+  : "Pra instalar no celular, a página precisa estar publicada (GitHub Pages). Veja docs/celular.md.";
+$("#instalar").onclick = async () => {
+  if (pedidoInstalar) {
+    pedidoInstalar.prompt();
+    const r = await pedidoInstalar.userChoice.catch(() => null);
+    if (r && r.outcome === "accepted") $("#instalar").hidden = true;
+    pedidoInstalar = null; return;
+  }
+  aviso("No Safari: toque em <b>Compartilhar</b> (quadrado com seta) → <b>Adicionar à Tela de Início</b> → Adicionar.", null, null, true);
+};
+window.addEventListener("appinstalled", () => { $("#instalar").hidden = true; });
+
+/* ---------- início ---------- */
+if (E.dias === -1 && !D.lancamentos.some(r => r.data > hojeISO)) E.dias = 30;
+contarAbas(); atualizaTxtGostos();
+mostrarAba(["lanc","desc","salvos"].includes(E.aba) ? E.aba : "lanc");
+</script>
+</body>
+</html>

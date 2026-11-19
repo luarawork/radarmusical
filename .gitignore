@@ -1,0 +1,15 @@
+# chaves e dados pessoais: nunca publicar
+.env
+cache/
+saida/
+historico/*
+!historico/LEIA-ME.md
+gostos/*
+!gostos/LEIA-ME.md
+radar_gostos*.json
+
+# ferramentas
+__pycache__/
+*.pyc
+.impeccable/
+.claude/
