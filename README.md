@@ -142,7 +142,6 @@ Todo o resto a IA faz.
 ### Opção A: Claude Code
 
 1. Baixe o app do Claude em https://claude.ai/download e entre com a sua conta.
-   O Claude Code precisa de um plano pago do Claude (Pro ou superior).
 2. No app, abra a aba **Code**.
 3. Escolha uma pasta pro projeto: pode ser uma pasta vazia, como `Documentos\Radar Musical`, ou a
    pasta onde você já descompactou o ZIP.
