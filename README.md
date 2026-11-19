@@ -23,8 +23,37 @@ Na página você pode:
 
 ---
 
+## Por que eu criei: furar a bolha do algoritmo
+
+Os apps de música decidem o que chega até você. As playlists de descoberta e os radares de
+lançamentos são montados por algoritmos que priorizam o que mantém você ouvindo: mais do mesmo,
+o que já é popular, os artistas que você já conhece. Com o tempo, a gente fica numa **bolha**.
+Disco novo de um artista que você amava passa batido, e quem é menor quase nunca aparece.
+
+Criei o Radar Musical pra tirar essa decisão do algoritmo e devolver pra você:
+
+- **Todos os lançamentos, não uma seleção.** O radar confere **cada artista** do seu histórico, inclusive
+  aquele que você ouviu poucas vezes anos atrás, e mostra tudo o que saiu. Quem decide o que é
+  relevante é você, com filtros que você controla.
+- **Descobertas que não dependem de engajamento.** As recomendações vêm de dados abertos do Last.fm:
+  artistas que **pessoas com gosto parecido com o seu** também ouvem. Nada de "mais tocados" nem de
+  quem pagou pra aparecer. Dá pra filtrar só os **menos conhecidos** e ir atrás do underground de propósito.
+- **Transparente.** Cada descoberta mostra **por que** foi recomendada ("porque você ouve X, Y e Z").
+  Nada de caixa-preta.
+- **Sem ficar preso a um app.** O seu histórico vem do Last.fm, que funciona com vários apps, e o botão
+  Ouvir abre onde você quiser.
+- **Você ensina, e ninguém mais usa isso.** Curti, não curti e conheço ficam no seu computador e
+  servem só pra melhorar o seu radar.
+
+É uma ferramentinha pessoal, feita pra quem sente que o algoritmo anda escolhendo demais o que
+você ouve. Se ela te ajudar a achar um disco ou um artista que você não teria encontrado, já valeu.
+
+---
+
 ## Sumário
 
+> 📖 Por que este projeto existe: [furar a bolha do algoritmo](#por-que-eu-criei-furar-a-bolha-do-algoritmo).
+>
 > 💡 **Não quer mexer no terminal?** Uma IA pode instalar e rodar tudo por você:
 > [Jeito fácil: com o Claude Code ou o Cursor](#jeito-fácil-com-o-claude-code-ou-o-cursor).
 

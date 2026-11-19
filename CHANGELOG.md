@@ -1,5 +1,13 @@
 # Mudanças
 
+## Novembro de 2026: ajustes finos
+
+- O número na aba **Lançamentos** agora é o **total** de lançamentos, e não só os álbuns e EPs dos últimos 30 dias.
+- O resumo avisa quando algum tipo está oculto, por exemplo "só álbuns e EPs (singles ocultos em Filtros)".
+- **Gêneros juntos:** variações do mesmo gênero viram um nome só, como brazil / brazilian / brasil →
+  "brasileira" e baile funk / funk carioca → "funk brasileiro". Tags que não são gênero ("all", "cover"…) saem.
+- README: seção **"Por que eu criei: furar a bolha do algoritmo"**.
+
 ## Novembro de 2026: página reorganizada
 
 ### Organização

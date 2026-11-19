@@ -384,8 +384,24 @@ const linkArtista = nome => APPS[app].busca(nome);
 $("#fonteRodape").textContent = D.fonte === "spotify" ? "Spotify" : "Deezer";
 
 /* ---------- dados: gêneros sem variações, datas ---------- */
-const normTag = t => String(t).toLowerCase().replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim();
-for (const it of [...D.lancamentos, ...D.descobertas]) it.tags = [...new Set((it.tags || []).map(normTag))].filter(Boolean);
+// variações do mesmo gênero (tags do Last.fm são escritas pelos usuários) viram um nome só
+const SINONIMOS = {
+  "brazil":"brasileira", "brazilian":"brasileira", "brasil":"brasileira", "brasileiro":"brasileira", "nacional":"brasileira",
+  "brazilian music":"brasileira", "musica brasileira":"brasileira", "música brasileira":"brasileira",
+  "funk carioca":"funk brasileiro", "baile funk":"funk brasileiro", "brazilian funk":"funk brasileiro", "funk br":"funk brasileiro",
+  "bregafunk":"brega funk", "hiphop":"hip hop", "rnb":"r&b", "r and b":"r&b", "rhythm and blues":"r&b",
+  "lofi":"lo-fi", "lo fi":"lo-fi", "logi lo fi":"lo-fi", "chillout":"chill", "chill out":"chill",
+  "forro":"forró", "axe":"axé", "electronica":"electronic", "eletronica":"electronic", "eletrônica":"electronic",
+  "usa":"eua", "united states":"eua", "american":"eua", "uk":"reino unido", "british":"reino unido", "england":"reino unido",
+  "india":"indiana", "indian":"indiana", "female vocalist":"female vocalists", "male vocalist":"male vocalists",
+  "alt rock":"alternative rock", "singer songwriter":"cantautor",
+};
+// tags que não dizem nada sobre o som
+const SEM_GENERO = new Set(["all","cover","video","game","150bpm","pica","bucetacore","gostoso","better than nicki minaj",
+  "seen live","favorites","favourite","favorite","awesome","love","beautiful","cool","amazing","best"]);
+const normTag = t => { const s = String(t).toLowerCase().replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim(); return SINONIMOS[s] || s; };
+const tagValida = t => t && !SEM_GENERO.has(t);
+for (const it of [...D.lancamentos, ...D.descobertas]) it.tags = [...new Set((it.tags || []).map(normTag))].filter(tagValida);
 const chaveL = r => r.artista + " — " + r.titulo;
 function quando(iso){
   if (iso > hojeISO) {
@@ -589,8 +605,13 @@ function resumo(qtd, total){
   const rotulo = E.aba === "lanc" ? `lançamento${qtd === 1 ? "" : "s"}` : E.aba === "desc" ? `artista${qtd === 1 ? "" : "s"} pra descobrir` : "curtidos";
   const periodo = E.aba !== "lanc" ? "" : E.dias === -1 ? " · em breve (próximos 60 dias)"
     : ` · ${E.dias ? `últimos ${E.dias === 90 ? "3 meses" : E.dias + " dias"}` : "último ano"}`;
+  // deixa claro quando algum tipo está de fora (ex.: singles ocultos por padrão)
+  const nomesTipo = {album: "álbuns", ep: "EPs", single: "singles"};
+  const fora = E.aba === "lanc" ? TIPOS.map(t => t[0]).filter(t => !E.tipos.includes(t)) : [];
+  const tiposTxt = fora.length && E.tipos.length
+    ? ` · só ${E.tipos.map(t => nomesTipo[t]).join(" e ")} <span style="opacity:.75">(${fora.map(t => nomesTipo[t]).join(" e ")} ocultos em Filtros)</span>` : "";
   const el = $("#resumo");
-  el.innerHTML = `<span><b>${qtd.toLocaleString("pt-BR")}</b> ${rotulo}${periodo}</span>` +
+  el.innerHTML = `<span><b>${qtd.toLocaleString("pt-BR")}</b> ${rotulo}${periodo}${tiposTxt}</span>` +
     partes.map((p, i) => `<button class="ativo" data-i="${i}" aria-label="Remover filtro ${esc(p[0])}">${esc(p[0])}</button>`).join("") +
     (partes.length > 1 ? `<button class="limpar" data-limpar>Limpar tudo</button>` : "");
   el.onclick = e => {
@@ -654,10 +675,12 @@ function render(manterPagina){
 }
 function mudou(){ salvarEstado(); render(); }
 function contarAbas(){
-  $("#nLanc").textContent = D.lancamentos.filter(r => noPeriodo(r, 30) && !descartado(G.lancamentos[chaveL(r)]) && (r.tipo === "album" || r.tipo === "ep")).length;
-  $("#nLanc").title = "Álbuns e EPs dos últimos 30 dias";
-  $("#nDesc").textContent = D.descobertas.filter(a => !G.descobertas[a.nome]).length;
-  $("#nDesc").title = "Ainda não avaliados";
+  // total de cada aba (tudo o que existe, menos o que você descartou), sem depender dos filtros
+  const nL = D.lancamentos.filter(r => !descartado(G.lancamentos[chaveL(r)])).length;
+  $("#nLanc").textContent = nL.toLocaleString("pt-BR");
+  $("#nLanc").title = "Total de lançamentos (último ano + em breve)";
+  $("#nDesc").textContent = D.descobertas.filter(a => !descartado(G.descobertas[a.nome])).length.toLocaleString("pt-BR");
+  $("#nDesc").title = "Total de artistas pra descobrir";
   const nSalvos = D.descobertas.filter(a => G.descobertas[a.nome] === "curti").length + D.lancamentos.filter(r => G.lancamentos[chaveL(r)] === "curti").length;
   $("#nSalvos").textContent = nSalvos; $("#nSalvos").hidden = !nSalvos;
 }
