@@ -2,6 +2,8 @@
 
 **Descubra o que saiu de novo dos artistas que você ouve, e artistas novos parecidos com o seu gosto.**
 
+![Aba Lançamentos: capas dos discos que saíram nos últimos 30 dias, com filtros de período e botão Ouvir](docs/img/lancamentos.png)
+
 O Radar Musical lê o seu histórico no [Last.fm](https://www.last.fm) e monta uma página só sua com:
 
 - **Lançamentos:** álbuns, EPs e singles que saíram nos últimos 12 meses dos artistas que você ouve,
@@ -20,6 +22,21 @@ Na página você pode:
 - se quiser, ter o radar como **app no celular**, com ícone na tela inicial.
 
 **Grátis, sem anúncios e sem entrar em nenhuma conta sua:** o programa só consulta dados públicos.
+
+<table>
+  <tr>
+    <td width="40%"><img src="docs/img/descobertas.png" alt="Aba Descobertas no tema claro: artistas recomendados com gêneros, motivo da recomendação, número de ouvintes e botões Curti, Conheço e Não curti"></td>
+    <td width="40%"><img src="docs/img/filtros.png" alt="Painel de filtros aberto: tipo, artistas, gêneros e opções de mostrar"></td>
+    <td width="20%"><img src="docs/img/celular.png" alt="Radar no celular: lançamentos em duas colunas"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Descobertas</b>, com o motivo de cada recomendação (tema claro)</td>
+    <td align="center"><b>Filtros</b> por tipo, artistas e gênero</td>
+    <td align="center"><b>No celular</b></td>
+  </tr>
+</table>
+
+<sub>Capturas feitas com um histórico real de cerca de 5 mil artistas.</sub>
 
 ---
 
