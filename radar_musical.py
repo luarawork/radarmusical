@@ -217,6 +217,70 @@ def baixar_biblioteca():
 
 
 # ----------------------------------------------------------------------------
+# O que você já ouviu (álbuns e músicas do Last.fm), pra marcar lançamentos já escutados
+# ----------------------------------------------------------------------------
+# sufixos que mudam o título mas não o disco: "(Deluxe)", "[Ao Vivo]", "- Single", "(feat. X)"…
+_SUFIXOS_TITULO = re.compile(
+    r"\s*[\(\[][^\)\]]*(deluxe|edition|edição|edicao|remaster|version|versão|versao|live|ao vivo|"
+    r"feat|ft\.|with|com |explicit|clean|bonus|expanded|anniversary|mono|stereo|single|ep)[^\)\]]*[\)\]]"
+    r"|\s+-\s+(single|ep|deluxe.*|remaster.*|ao vivo.*|live.*)$",
+    re.IGNORECASE)
+
+
+def norm_titulo(titulo):
+    t = titulo or ""
+    for _ in range(3):   # pode ter mais de um sufixo
+        t = _SUFIXOS_TITULO.sub("", t).strip()
+    return norm(t)
+
+
+def baixar_ouvidos():
+    """Todos os álbuns e músicas que você já ouviu no Last.fm, com o número de plays.
+    Vem 1.000 por página, então é rápido mesmo com históricos grandes. Guardado por 1 dia."""
+    cache = ler_json("ouvidos.json", None)
+    if cache and cache.get("user") == LASTFM_USER and cache.get("dia") == str(date.today()):
+        print(f"✓ Já ouvidos (cache): {len(cache['albuns'])} álbuns e {len(cache['musicas'])} músicas")
+        return cache
+    resultado = {"user": LASTFM_USER, "dia": str(date.today()), "albuns": {}, "musicas": {}}
+    for metodo, raiz, item, chave in (("user.gettopalbums", "topalbums", "album", "albuns"),
+                                      ("user.gettoptracks", "toptracks", "track", "musicas")):
+        print(f"→ Baixando {'álbuns' if chave == 'albuns' else 'músicas'} que você já ouviu…")
+        pagina, total_pag = 1, 1
+        while pagina <= total_pag:
+            j = lastfm(metodo, user=LASTFM_USER, period="overall", limit=1000, page=pagina)
+            if not j:
+                break
+            bloco = j.get(raiz, {})
+            total_pag = int(bloco.get("@attr", {}).get("totalPages", 1))
+            for x in bloco.get(item, []):
+                artista = (x.get("artist") or {}).get("name", "")
+                k = f"{norm(artista)}|{norm_titulo(x.get('name', ''))}"
+                resultado[chave][k] = resultado[chave].get(k, 0) + int(x.get("playcount", 0) or 0)
+            barra(pagina, total_pag, "   páginas")
+            pagina += 1
+    salvar_json("ouvidos.json", resultado)
+    print(f"✓ Você já ouviu {len(resultado['albuns'])} álbuns e {len(resultado['musicas'])} músicas")
+    return resultado
+
+
+def marcar_ouvidos(lanc, ouvidos):
+    """Põe em cada lançamento quantas vezes você já ouviu (0 = nunca).
+    Álbum/EP: compara com seus álbuns; single: com suas músicas (e álbuns, pra singles
+    que o app registrou como álbum). Compara artista + título sem acento e sem sufixos."""
+    albuns, musicas = ouvidos.get("albuns", {}), ouvidos.get("musicas", {})
+    n = 0
+    for r in lanc:
+        artistas = {norm(r.get("artista_lfm", "")), norm(r.get("artista", ""))}
+        titulo = norm_titulo(r["titulo"])
+        fontes = (musicas, albuns) if r["tipo"] == "single" else (albuns,)
+        plays = max((f.get(f"{a}|{titulo}", 0) for f in fontes for a in artistas), default=0)
+        r["ouvido"] = plays
+        n += bool(plays)
+    print(f"✓ {n} lançamentos você já ouviu (marcados na página)")
+    return lanc
+
+
+# ----------------------------------------------------------------------------
 # Spotify (client credentials: só lê o catálogo público, nunca acessa sua conta)
 # ----------------------------------------------------------------------------
 _sp_token = {"valor": None, "expira": 0}
@@ -543,7 +607,7 @@ def checar_lancamentos(biblioteca, fonte=None):
                 continue
             if r["data"] > limite_futuro:   # data muito adiante costuma ser erro do catálogo
                 continue
-            chave = (nome, norm(r["titulo"]))
+            chave = (nome, norm_titulo(r["titulo"]))   # "Disco" e "Disco (Deluxe)" contam como um
             if chave in vistos:
                 continue
             vistos.add(chave)
@@ -554,7 +618,7 @@ def checar_lancamentos(biblioteca, fonte=None):
     ordem_tipo = {"album": 3, "ep": 2, "single": 1, "compilation": 0}
     melhor = {}
     for r in resultado:
-        k = (norm(r["artista"]), norm(r["titulo"]))
+        k = (norm(r["artista"]), norm_titulo(r["titulo"]))
         if k not in melhor or ordem_tipo.get(r["tipo"], 0) > ordem_tipo.get(melhor[k]["tipo"], 0):
             melhor[k] = r
     resultado = sorted(melhor.values(), key=lambda r: r["data"], reverse=True)
@@ -990,6 +1054,7 @@ def main():
     historico = carregar_historico()
     desc = descobrir(biblioteca, gostos, historico)
     lanc = generos_lancamentos(checar_lancamentos(biblioteca))
+    lanc = marcar_ouvidos(lanc, baixar_ouvidos())
     saida = gerar_html(lanc, desc, len(biblioteca), gostos)
     url = publicar_github()
     print(f"\n🎧 Pronto em {int((time.time() - inicio) / 60)} min → {saida}")

@@ -380,6 +380,9 @@ A primeira vez é mais lenta porque busca tudo do zero. Depois, quase tudo vem d
 **Cards**
 - Toque na **capa** ou em **Ouvir** pra abrir no seu app.
 - Toque no **nome do artista** pra ver só os lançamentos dele.
+- **"✓ já ouvi · 12×":** o radar confere no seu Last.fm se você já ouviu aquele disco ou single. Por padrão,
+  o que você já ouviu **fica oculto**, pra lista mostrar só o que é novo pra você. O resumo diz quantos
+  ficaram de fora, e dá pra ver todos em **Filtros → Incluir o que eu já ouvi**.
 - **"+N deste artista":** pra ninguém tomar a lista, aparecem no máximo 3 lançamentos por artista.
   Clique pra ver todos.
 - **♥ Curti / ✕ Não curti** (lançamentos) e **Curti / Conheço / Não curti** (descobertas):

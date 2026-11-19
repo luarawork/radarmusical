@@ -25,6 +25,11 @@
    - Datas até 60 dias à frente aparecem como **Em breve**; mais longe que isso costumam ser erro do catálogo e ficam de fora.
    - Compositores clássicos (tags como "classical" e "composer") ficam de fora: o catálogo lista gravações novas de outros músicos como se fossem deles.
    - O gênero vem das tags do Last.fm.
+   - **Já ouvi:** baixa do Last.fm todos os álbuns e músicas que você já ouviu, 1.000 por página, e compara
+     artista + título sem acentos e sem sufixos como "(Deluxe)", "(Ao Vivo)", "- Single" e "(feat. X)".
+     Álbuns e EPs são comparados com os seus álbuns, e singles com as suas músicas. Reedições e versões novas de
+     algo que você já ouviu também contam como "já ouvi". Versões do mesmo título ("Disco" e "Disco (Deluxe)")
+     viram um lançamento só.
 6. **Página:** gera `saida/radar.html` e a versão instalável `saida/site/`, e publica no GitHub
    Pages se estiver configurado ([celular.md](celular.md)).
 
@@ -50,6 +55,7 @@ Tudo fica em `cache/`. Apagar a pasta faz o script começar do zero.
 | Arquivo | O que guarda | Validade |
 |---|---|---|
 | `biblioteca.json` | seus artistas do Last.fm | 1 dia |
+| `ouvidos.json` | álbuns e músicas que você já ouviu (Last.fm) | 1 dia |
 | `similares.json`, `info_artistas.json`, `tags_artistas.json` | parecidos, ouvintes e gêneros | sem prazo |
 | `deezer_artistas.json` | ID de cada artista no Deezer + lançamentos | ID 60 dias, lançamentos 1 dia* |
 | `spotify_artistas.json` | o mesmo, no Spotify | ID 60 dias, lançamentos 7 dias |

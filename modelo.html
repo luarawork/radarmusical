@@ -147,6 +147,8 @@
   .artista:hover{color:var(--txt);text-decoration:underline}
   .meta{display:flex;flex-wrap:wrap;gap:2px 10px;font-size:12px;color:var(--mut)}
   .meta .top{color:var(--acc);font-weight:600}
+  .meta .ouvi{color:var(--ok);font-weight:600}
+  .card.ja-ouvi .capa img{filter:saturate(.55)}
   .mais{align-self:flex-start;background:none;border:0;padding:0;color:var(--acc);font-size:12px;font-weight:600;cursor:pointer}
   .mais:hover{text-decoration:underline}
   .tags{display:flex;flex-wrap:wrap;gap:5px}
@@ -288,6 +290,7 @@
       <div class="grupo" data-so="lanc desc">
         <h2>Mostrar</h2>
         <label class="opcao" data-so="lanc"><input type="checkbox" id="fAgrupar"> No máximo 3 por artista <small style="color:var(--mut)">(evita que quem lança muitos singles tome a lista)</small></label>
+        <label class="opcao" data-so="lanc"><input type="checkbox" id="fOuvidos"> Incluir o que eu já ouvi <small style="color:var(--mut)">(segundo o seu Last.fm)</small></label>
         <label class="opcao"><input type="checkbox" id="fDescartados"> Incluir o que marquei como “não curti” ou “já conheço”</label>
       </div>
     </div>
@@ -448,11 +451,11 @@ function marcar(tipo, chave, valor, quiet){
 /* ---------- estado da tela (lembrado neste navegador) ---------- */
 const E = Object.assign({
   aba: "lanc", dias: 30, ordLanc: "data", ordDesc: "pontos", tipos: ["album","ep"], top: 0, pop: 0,
-  agrupar: true, descartados: false,
+  agrupar: true, descartados: false, ouvidos: false,
 }, ler("radar_estado", {}));
 E.q = ""; E.gen = []; E.artista = ""; let pagina = 1;
 const salvarEstado = () => gravar("radar_estado", {aba:E.aba, dias:E.dias, ordLanc:E.ordLanc, ordDesc:E.ordDesc,
-  tipos:E.tipos, top:E.top, pop:E.pop, agrupar:E.agrupar, descartados:E.descartados});
+  tipos:E.tipos, top:E.top, pop:E.pop, agrupar:E.agrupar, descartados:E.descartados, ouvidos:E.ouvidos});
 
 const ORDENS = {
   lanc: [["data","Mais recentes"],["rank","Dos artistas que mais ouço"],["artista","Artista (A–Z)"],["antigos","Mais antigos"]],
@@ -477,6 +480,7 @@ function filtrarLanc(ignorar = {}){
     (ignorar.gen || passaGen(r.tags)) &&
     (!E.artista || r.artista === E.artista) &&
     (E.descartados || !descartado(G.lancamentos[chaveL(r)])) &&
+    (ignorar.ouvidos || E.ouvidos || !r.ouvido) &&
     passaBusca([r.artista, r.titulo, ...r.tags].join(" ")));
 }
 function filtrarDesc(ignorar = {}){
@@ -525,7 +529,7 @@ const nomeTipo = {album:"Álbum", ep:"EP", single:"Single", compilation:"Coletâ
 
 function cardLanc(r){
   const k = chaveL(r), v = G.lancamentos[k] || "", breve = r.data > hojeISO, link = esc(linkLanc(r));
-  return `<article class="card lanc ${v === "curti" ? "curti" : descartado(v) ? "descartado" : ""}">
+  return `<article class="card lanc ${v === "curti" ? "curti" : descartado(v) ? "descartado" : ""} ${r.ouvido ? "ja-ouvi" : ""}">
     <a class="capa" href="${link}" target="_blank" rel="noopener" aria-label="Ouvir ${esc(r.titulo)} no ${APPS[app].nome}">
       ${r.capa ? `<img loading="lazy" decoding="async" src="${esc(r.capa)}" alt="">` : `<div class="ini">${iniciais(r.artista)}</div>`}
       <span class="selos"><span class="selo ${r.tipo}">${nomeTipo[r.tipo] || r.tipo}</span>${breve ? `<span class="selo breve">Em breve</span>` : ""}</span>
@@ -533,7 +537,7 @@ function cardLanc(r){
     <div class="corpo">
       <div class="titulo" title="${esc(r.titulo)}">${esc(r.titulo)}</div>
       <button class="artista" data-artista="${esc(r.artista)}" title="Ver só ${esc(r.artista)}">${esc(r.artista)}</button>
-      <div class="meta"><span>${quando(r.data)}</span>${r.rank <= 100 ? `<span class="top">★ seu top ${r.rank}</span>` : ""}</div>
+      <div class="meta"><span>${quando(r.data)}</span>${r.rank <= 100 ? `<span class="top">★ seu top ${r.rank}</span>` : ""}${r.ouvido ? `<span class="ouvi" title="Segundo o seu Last.fm">✓ já ouvi · ${r.ouvido}×</span>` : ""}</div>
       ${r._mais ? `<button class="mais" data-artista="${esc(r.artista)}">+${r._mais} deste artista</button>` : ""}
       ${tagsHtml(r.tags)}
       <div class="acoes">${votos("lancamentos", k, ["curti","nao"])}<span class="esp"></span>
@@ -588,9 +592,9 @@ function montarControles(){
   E.gen.filter(g => !cont[g]).forEach(g => top.push([g, 0]));
   $("#fGen").closest(".grupo").hidden = !top.length || E.aba === "salvos" || !$("#fGen").closest(".grupo").dataset.so.includes(E.aba);
   chips($("#fGen"), top.map(([t, n]) => [t, t, n]), v => E.gen.includes(v), v => alternaGen(v));
-  $("#fAgrupar").checked = E.agrupar; $("#fDescartados").checked = E.descartados;
+  $("#fAgrupar").checked = E.agrupar; $("#fDescartados").checked = E.descartados; $("#fOuvidos").checked = E.ouvidos;
   const n = (lanc ? (E.top ? 1 : 0) + (E.tipos.length !== 2 || !E.tipos.includes("album") || !E.tipos.includes("ep") ? 1 : 0) + (!E.agrupar ? 1 : 0)
-                  : (E.pop ? 1 : 0)) + E.gen.length + (E.descartados ? 1 : 0);
+                  : (E.pop ? 1 : 0)) + E.gen.length + (E.descartados ? 1 : 0) + (lanc && E.ouvidos ? 1 : 0);
   $("#nFiltros").hidden = !n; $("#nFiltros").textContent = n;
 }
 const alternaGen = g => { E.gen = E.gen.includes(g) ? E.gen.filter(x => x !== g) : [...E.gen, g]; mudou(); };
@@ -608,10 +612,13 @@ function resumo(qtd, total){
   // deixa claro quando algum tipo está de fora (ex.: singles ocultos por padrão)
   const nomesTipo = {album: "álbuns", ep: "EPs", single: "singles"};
   const fora = E.aba === "lanc" ? TIPOS.map(t => t[0]).filter(t => !E.tipos.includes(t)) : [];
+  // quantos lançamentos ficaram de fora por você já ter ouvido
+  const nOuvidos = E.aba === "lanc" && !E.ouvidos ? filtrarLanc({ouvidos: true}).filter(r => r.ouvido).length : 0;
+  const ouvidosTxt = nOuvidos ? ` · <span style="opacity:.75">${nOuvidos.toLocaleString("pt-BR")} que você já ouviu ocultos</span>` : "";
   const tiposTxt = fora.length && E.tipos.length
     ? ` · só ${E.tipos.map(t => nomesTipo[t]).join(" e ")} <span style="opacity:.75">(${fora.map(t => nomesTipo[t]).join(" e ")} ocultos em Filtros)</span>` : "";
   const el = $("#resumo");
-  el.innerHTML = `<span><b>${qtd.toLocaleString("pt-BR")}</b> ${rotulo}${periodo}${tiposTxt}</span>` +
+  el.innerHTML = `<span><b>${qtd.toLocaleString("pt-BR")}</b> ${rotulo}${periodo}${tiposTxt}${ouvidosTxt}</span>` +
     partes.map((p, i) => `<button class="ativo" data-i="${i}" aria-label="Remover filtro ${esc(p[0])}">${esc(p[0])}</button>`).join("") +
     (partes.length > 1 ? `<button class="limpar" data-limpar>Limpar tudo</button>` : "");
   el.onclick = e => {
@@ -709,6 +716,7 @@ function alternaPainel(abrir){
 $("#abrirFiltros").onclick = () => alternaPainel();
 $("#fAgrupar").onchange = e => { E.agrupar = e.target.checked; mudou(); };
 $("#fDescartados").onchange = e => { E.descartados = e.target.checked; mudou(); };
+$("#fOuvidos").onchange = e => { E.ouvidos = e.target.checked; mudou(); };
 $("#carregarMais").onclick = () => { pagina++; render(true); };
 // carrega mais sozinho ao chegar perto do fim
 if ("IntersectionObserver" in window) new IntersectionObserver(es => {

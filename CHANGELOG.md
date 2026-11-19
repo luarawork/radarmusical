@@ -1,5 +1,13 @@
 # Mudanças
 
+## Novembro de 2026: "já ouvi"
+
+- O radar confere no seu Last.fm se você **já ouviu** cada lançamento. Ele compara artista + título,
+  ignorando acentos e sufixos como "(Deluxe)", "(Ao Vivo)" e "- Single".
+- Na página, o que você já ouviu fica **oculto por padrão**. O resumo diz quantos ficaram de fora, e
+  **Filtros → Incluir o que eu já ouvi** mostra todos com o selo "✓ já ouvi · N×".
+- Versões do mesmo título ("Disco" e "Disco (Deluxe)") viram um lançamento só.
+
 ## Novembro de 2026: ajustes finos
 
 - O número na aba **Lançamentos** agora é o **total** de lançamentos, e não só os álbuns e EPs dos últimos 30 dias.
